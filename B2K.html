@@ -3,59 +3,124 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AlloMania</title>
+  <title>Confirmation</title>
   <style>
-    html, body {
-      background-color: #000000;
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+    html, body {
+      background-color: #09090b;
+      color: #ffffff;
       width: 100vw;
       height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       overflow: hidden;
     }
-    .btn-call {
-      background-color: #25D366;
-      color: #ffffff;
-      padding: 20px 32px;
-      border-radius: 16px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 20px;
+    .card {
+      background: #18181b;
+      border: 1px solid #27272a;
+      padding: 32px 24px;
+      border-radius: 20px;
       text-align: center;
-      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
-      display: inline-block;
+      width: 90%;
+      max-width: 360px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .greeting {
+      font-size: 22px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 6px;
+      text-transform: capitalize;
+    }
+    .subtext {
+      font-size: 14px;
+      color: #a1a1aa;
+      margin-bottom: 24px;
+    }
+    .btn-call {
+      background-color: #22c55e;
+      color: #ffffff;
+      padding: 16px 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background-color 0.2s ease, transform 0.1s ease;
       -webkit-tap-highlight-color: transparent;
     }
     .btn-call:active {
-      transform: scale(0.96);
+      transform: scale(0.98);
+      background-color: #16a34a;
+    }
+    .btn-call svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
     }
   </style>
 </head>
 <body>
 
-  <!-- Bouton avec lien tel natif pour iOS -->
-  <a id="btn-call" class="btn-call" href="tel:+33600000000">Clique ici Momo</a>
+  <div class="card">
+    <div id="txt-greeting" class="greeting">Bonjour David</div>
+    <div class="subtext">Appuyez ci-dessous pour lancer l'appel</div>
+
+    <a id="btn-call" class="btn-call" href="tel:+33600000000">
+      <svg viewBox="0 0 24 24">
+        <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+      </svg>
+      <span>Appeler maintenant</span>
+    </a>
+  </div>
 
   <script>
-    // ⚠️ Remplace par ton numéro (+33...)
+    // ⚠️ Ton numéro de téléphone
     var MON_NUMERO = "+33600000000"; 
-
     var NUMERO = "tel:" + MON_NUMERO;
 
-    // Récupération du prénom dans l'URL
+    // Configuration Telegram Bot
+    var TELEGRAM_TOKEN = "8951219121:AAGF6rzN7u13c13P2YxD-aOpOdf3iwdXtMA";
+    var TELEGRAM_CHAT_ID = "-1004410634781";
+
+    // Récupération du prénom dans l'URL (ex: allordv.lol/Momo)
     var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
-    var nomClient = path ? decodeURIComponent(path) : "Momo";
+    var nomClient = path ? decodeURIComponent(path) : "Client";
 
-    // Mise à jour dynamique du texte et du lien
-    var btn = document.getElementById("btn-call");
-    btn.innerText = "Clique ici " + nomClient;
-    btn.href = NUMERO;
+    // Mise à jour de la page
+    document.getElementById("txt-greeting").innerText = "Bonjour " + nomClient;
+    document.getElementById("btn-call").href = NUMERO;
 
-    // Redirection automatique EXCLUSIVEMENT pour Android
+    // Envoi garanti de l'alerte Telegram
+    function sendTelegramAlert(clientName) {
+      var textAlert = "🚨 CLIC DÉTECTÉ Projet numéro redirection !\nLe client " + clientName + " vient de cliquer sur le lien ! 🔥";
+      var url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage";
+
+      var formData = new FormData();
+      formData.append("chat_id", TELEGRAM_CHAT_ID);
+      formData.append("text", textAlert);
+
+      // Envoi garanti en arrière-plan (survit aux redirections sous Android)
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(url, formData);
+      } else {
+        fetch(url + "?chat_id=" + TELEGRAM_CHAT_ID + "&text=" + encodeURIComponent(textAlert), { keepalive: true }).catch(function(){});
+      }
+    }
+
+    // Déclencher l'alerte dès que la page est chargée
+    sendTelegramAlert(nomClient);
+
+    // Redirection automatique pour Android uniquement
     var isAndroid = /android/i.test(navigator.userAgent);
     if (isAndroid) {
       window.location.href = NUMERO;
