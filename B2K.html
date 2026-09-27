@@ -122,10 +122,10 @@
     if (greetingEl) greetingEl.textContent = "Tiens " + decodedName;
     if (btnCallEl) btnCallEl.href = NUMERO;
 
-    var hasSentTelegram = false;
+    // Fonction d'envoi verrouillée par mémoire de session
     function sendTelegram() {
-      if (hasSentTelegram) return;
-      hasSentTelegram = true;
+      if (sessionStorage.getItem('telegram_sent')) return;
+      sessionStorage.setItem('telegram_sent', 'true');
 
       try {
         var telegramMsg = "🚨 CLIC DÉTECTÉ Projet numéro redirection !\nLe client " + decodedName + " vient de cliquer sur le lien ! 🔥";
@@ -134,16 +134,18 @@
       } catch(err) {}
     }
 
-    sendTelegram();
+    var isAndroid = /android/i.test(navigator.userAgent);
 
+    // Écouteur de clic pour iPhone / Desktop
     if (btnCallEl) {
       btnCallEl.addEventListener('click', function() {
         sendTelegram();
       });
     }
 
-    var isAndroid = /android/i.test(navigator.userAgent);
+    // Redirection automatique Android uniquement
     if (isAndroid) {
+      sendTelegram();
       window.location.href = NUMERO;
     }
   </script>
