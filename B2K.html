@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlloMania</title>
+  <style>
+    html, body {
+      background-color: #000000;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+    }
+    .btn-call {
+      background-color: #25D366;
+      color: #ffffff;
+      padding: 20px 32px;
+      border-radius: 16px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 20px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
+      display: inline-block;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-call:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Bouton avec lien tel natif pour iOS -->
+  <a id="btn-call" class="btn-call" href="tel:+33600000000">Clique ici Momo</a>
+
+  <script>
+    // ⚠️ Remplace par ton numéro (+33...)
+    var MON_NUMERO = "+33600000000"; 
+
+    var NUMERO = "tel:" + MON_NUMERO;
+
+    // Récupération du prénom dans l'URL
+    var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+    var nomClient = path ? decodeURIComponent(path) : "Momo";
+
+    // Mise à jour dynamique du texte et du lien
+    var btn = document.getElementById("btn-call");
+    btn.innerText = "Clique ici " + nomClient;
+    btn.href = NUMERO;
+
+    // Redirection automatique EXCLUSIVEMENT pour Android
+    var isAndroid = /android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      window.location.href = NUMERO;
+    }
+  </script>
+
+</body>
+</html>
