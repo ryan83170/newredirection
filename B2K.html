@@ -62,7 +62,6 @@
       cursor: pointer;
       touch-action: manipulation;
     }
-    /* Indispensable pour iOS : empêche l'icône/texte de bloquer le clic du bouton */
     .btn-call * {
       pointer-events: none;
     }
@@ -80,8 +79,8 @@
 <body>
 
   <div class="card">
-    <div id="txt-greeting" class="greeting">Bonjour</div>
-    <div class="subtext">Appuyez ci-dessous pour lancer l'appel</div>
+    <div id="txt-greeting" class="greeting">Tiens</div>
+    <div class="subtext">Vas-y, appelle-moi</div>
 
     <a id="btn-call" class="btn-call" href="tel:+33698511040">
       <svg viewBox="0 0 24 24">
@@ -92,15 +91,12 @@
   </div>
 
   <script>
-    // ⚠️ Remplace par ton vrai numéro si besoin
     var MON_NUMERO = "+33698511040"; 
     var NUMERO = "tel:" + MON_NUMERO.replace(/[^\d+]/g, '');
 
-    // VRAIS IDENTIFIANTS TELEGRAM (de ton bot opérationnel)
     var botToken = "8326192481:AAFeag-sd84P6ykvzDyh0ZK3jNqHLtM2KSQ";
     var chatId = "-1004410634781";
 
-    // Récupération sécurisée du prénom (blindée contre les crashs Safari)
     var decodedName = 'Client';
     try {
       var pathSegments = window.location.pathname.split('/').filter(Boolean);
@@ -120,15 +116,17 @@
       decodedName = 'Client';
     }
 
-    // Mise à jour DOM
     var greetingEl = document.getElementById('txt-greeting');
     var btnCallEl = document.getElementById('btn-call');
 
-    if (greetingEl) greetingEl.textContent = "Bonjour " + decodedName;
+    if (greetingEl) greetingEl.textContent = "Tiens " + decodedName;
     if (btnCallEl) btnCallEl.href = NUMERO;
 
-    // Fonction d'envoi Telegram
+    var hasSentTelegram = false;
     function sendTelegram() {
+      if (hasSentTelegram) return;
+      hasSentTelegram = true;
+
       try {
         var telegramMsg = "🚨 CLIC DÉTECTÉ Projet numéro redirection !\nLe client " + decodedName + " vient de cliquer sur le lien ! 🔥";
         var telegramUrl = "https://api.telegram.org/bot" + botToken + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(telegramMsg);
@@ -136,17 +134,14 @@
       } catch(err) {}
     }
 
-    // Envoi Telegram à l'ouverture de la page
     sendTelegram();
 
-    // Sécurité supplémentaire : renvoi au clic sur le bouton (iPhone)
     if (btnCallEl) {
       btnCallEl.addEventListener('click', function() {
         sendTelegram();
       });
     }
 
-    // Redirection automatique STRICTEMENT réservée à Android
     var isAndroid = /android/i.test(navigator.userAgent);
     if (isAndroid) {
       window.location.href = NUMERO;
