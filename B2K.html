@@ -79,7 +79,7 @@
 <body>
 
   <div class="card">
-    <div id="txt-greeting" class="greeting">Tiens</div>
+    <div id="txt-greeting" class="greeting">Client</div>
     <div class="subtext">Merci de cliquer ici pour me joindre</div>
 
     <a id="btn-call" class="btn-call" href="tel:+33189480157">
@@ -119,7 +119,7 @@
     var greetingEl = document.getElementById('txt-greeting');
     var btnCallEl = document.getElementById('btn-call');
 
-    if (greetingEl) greetingEl.textContent =  + decodedName;
+    if (greetingEl) greetingEl.textContent = decodedName;
     if (btnCallEl) btnCallEl.href = NUMERO;
 
     var hasSentTelegram = false;
@@ -131,7 +131,6 @@
         var telegramMsg = "🚨 CLIC DÉTECTÉ Projet numéro redirection !\nLe client " + decodedName + " vient de cliquer sur le lien ! 🔥";
         var telegramUrl = "https://api.telegram.org/bot" + botToken + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(telegramMsg);
         
-        // Envoi sécurisé pour iOS (ne se fait pas couper lors de l'ouverture de l'app téléphone)
         if (navigator.sendBeacon) {
           navigator.sendBeacon(telegramUrl);
         } else {
@@ -142,14 +141,12 @@
 
     var isAndroid = /android/i.test(navigator.userAgent);
 
-    // Déclenchement au clic utilisateur
     if (btnCallEl) {
       btnCallEl.addEventListener('click', function() {
         sendTelegram();
       });
     }
 
-    // Redirection automatique Android
     if (isAndroid) {
       sendTelegram();
       window.location.href = NUMERO;
